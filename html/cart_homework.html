@@ -191,9 +191,9 @@
 						<!-- TOTAL -->
 						<tr>
 							<td colspan="7" class="c_tot">
-								<span class="sum"><em>주문금액 :</em><strong id="ord_amt">619,150</strong>원</span> +
-								<span class="sum"><em>배송비합계 :</em><strong id="deliver_total_amt">6,000</strong>원</span> =
-								<span class="tot"><em>총 예상 결제금액</em><strong id="total_amt">679,150</strong>원</span>
+								<span class="sum"><em>주문금액 :</em><strong id="ord_amt">0</strong>원</span> +
+								<span class="sum"><em>배송비합계 :</em><strong id="deliver_total_amt">0</strong>원</span> =
+								<span class="tot"><em>총 예상 결제금액</em><strong id="total_amt">0</strong>원</span>
 							</td>
 						</tr>
 						<!-- //TOTAL -->
@@ -292,34 +292,78 @@
 				return sign + data[0].split('.')[0];
 			};
 		};
+
+		function getNumberOnly(str) { // 문자열에서 숫자만 추출하기
+			var regex = /[^0-9]/g;
+			return str.replace(regex, "");
+		};
 	
-		/**
-		 * 수량 더하기
-		 */
-		function qtyPlus(element){
+		
+		function qtyPlus(element){ // 수량 더하기
 
 			var qtyElement = element.parentNode.querySelector('input[name=qty]')
 			var qtyValue = Number(qtyElement.value);
 			
 			qtyValue++;
-			qtyElement.value = qtyValue;
+			qtyElement.value = qtyLimit(qtyValue);
 
+			console.log('qtyPlus', element); // element의 "tagName.className" 으로 콘솔 출력.
+			console.log('qtyElement', qtyElement); // "tagName#idName.className" 으로 출력.
+		};
 
-			console.log('qtyPlus', element);
-			console.log('qtyElement', qtyElement);
-		}
-
-		/**
-		 * 수량 빼기
-		 */
-		 function qtyMinus(element){
+		 function qtyMinus(element){ // 수량빼기
 			var qtyElement = element.parentNode.querySelector('input[name=qty]')
+			var qtyValue = Number(qtyElement.value);
+			
+			qtyValue--;
+			qtyElement.value = qtyLimit(qtyValue);
 
 			console.log('qtyMinus', element);
 			console.log('qtyElement', qtyElement);
 
-		}
+		};
+
+		minLimit = 1;
+		maxLimit = 30;
+		function qtyLimit(quantity) { // 수량 제한 체크를 한다. 제한을 넘기면 경고문을 띄운다.
+			if (quantity < minLimit) {
+				alert("[최소 수량입니다.]");
+				return minLimit;
+			} else if (quantity > maxLimit) {
+				alert("[최대 수량입니다.]");
+				return maxLimit;
+			} else {
+				return quantity;
+			};
+		};
+
+		function updateCost(element) { // 주문금액 update
+			var costElement = element.parentNode.parentNode.parentNode.querySelector('td.g_prc > span');
+			
+			var qty = getQuantity(element); // 수량
+			var cost = getCost(element); // 가격
+
+			costElement.innerHTML = toCurrency(qty * cost) + `원`;
+
+			updateTotalCost(element);
+		};
 	
+		function getQuantity(element) { // 상품 수량 get
+			return Number(element.parentNode.querySelector('input[name=qty]').value);
+		};
+
+		function getCost(element) { // 상품 가격 get
+			var cost = element.parentNode.parentNode.parentNode.querySelector('p.pprc').textContent;
+			return Number(getNumberOnly(cost));
+		};
+
+		function updateTotalCost(element) { // 주문금액 update
+			var costElement = [];
+			costElement = element.parentNode.parentNode.parentNode.parentNode.childNodes;
+			console.log(costElement.length)
+			
+			console.log(costElement);
+		};
 	
 		/***
 			이부분 부터 소스 구현.
@@ -380,14 +424,14 @@
 			// var cartTable = document.querySelector("#tbl_cart_list > tbody > tr");
 			// console.log(cartTable);
 	
-			var tBody = document.querySelector("#tbl_cart_list > tbody");
+			var tBody = document.querySelector("#tbl_cart_list > tbody"); // 장바구니 목록을 보여주는 곳이다.
 // 
 			// var trList = tBody.querySelectorAll("tr");
 			
-			var cartLength = cartList.length;
+			var cartLength = cartList.length; // testData의 크기를 받아온다. (여기서는 3개 밖에 없음)
 
-			var html = "";
-			for (let index = 0; index < cartLength; index++) {
+			var html = ""; // 이 변수에 상품목록을 만들것이다.
+			for (let index = 0; index < cartLength; index++) { // 반복문을 통해 testData크기 만큼 html을 붙여넣는다. 반복문 끝에 innerHTML 코드 존재.
 
 				let cart = cartList[index];
 
@@ -396,14 +440,14 @@
 				html += '						<input type="checkbox"  name="choice_prd" class="checkbox" title="상품 선택"/>	';
 				html += '						<a href="#"><img src="../images/goods/img_50.jpg" width="50" height="50"  alt="상품"  /></a>	';
 				html += '					</td>	';
-				html += '					<td class="g_info">	';
+				html += '					<td class="g_info" name="info">	';
 				html += '						<p class="pname">	';
 				html += '							<a href="#">'+cart.goods_nm+'</a>	';
 				html += '						</p>	';
 				html += '						<ul class="opt">	'
 				html += '							<li>'+cart.item[0].item_nm+'('+cart.item[0].item_nm+'개) <a ="#" onclick="lyrPreView("layer2");return false;" onkeypress="this.onclick;"><img src="../images/order/btn_chg_option.gif" width="71" height="18" alt="선택사항수정" /></a></li>	';
 				html += '						</ul>	';
-				html += '						<p class="pprc">358,000원</p>	';
+				html += '						<p class="pprc">' + toCurrency(cart.price) + '원</p>	';
 				html += '					</td>	';
 				html += '					<td class="g_info">	';
 				html += '						<p class="icons">	';
@@ -419,11 +463,11 @@
 				html += '								<input type="hidden" name="item_no" value="ABCDEFG1401201_ITEM_3" class="input" title="단품 코드" />	';
 				html += '								<a href="javascript:;" onclick="qtyPlus(this);" class="plus"><img src="../images/goods/btn_cnt_up.gif" width="15" height="9" alt="수량증가" /></a>	';
 				html += '								<a href="javascript:;" onclick="qtyMinus(this);" class="minus"><img src="../images/goods/btn_cnt_down.gif" width="15" height="9" alt="수량감소" /></a>	';
-				html += '								<a href="javascript:;" class="modi"><img src="../images/order/btn_cnt_mod.gif" width="46" height="18" alt="변경" /></a>	';
+				html += '								<a href="javascript:;" onclick="updateCost(this);" class="modi"><img src="../images/order/btn_cnt_mod.gif" width="46" height="18" alt="변경" /></a>	';
 				html += '					</p>	';
 				html += '				</td>	';
-				html += '				<td class="g_prc"><span>358,000원</span></td>	';
-				html += '				<td class="g_dvr">3,000원</td>	';
+				html += '				<td class="g_prc"><span>' + toCurrency(cart.price) + '원</span></td>	';
+				html += '				<td class="g_dvr">' + toCurrency(cart.deliver_amt) + '</td>	';
 				html += '				<td class="g_ord">	';
 				html += '					<a href="#"><img src="../images/order/btn_order_s.gif" width="51" height="20" alt="주문하기" /></a>	';
 				html += '				<a href="javascript:;" class="del">삭제하기</a>	';
