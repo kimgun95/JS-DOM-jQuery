@@ -358,11 +358,17 @@
 		};
 
 		function updateTotalCost(element) { // 주문금액 update
-			var costElement = [];
-			costElement = element.parentNode.parentNode.parentNode.parentNode.childNodes;
-			console.log(costElement.length)
+			var totalQty = 0
+			var totalCost = 0
+			var goodsInfo = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tr');
+			for (let idx = 0; idx < goodsInfo.length; idx++) {
+				var infoElement = goodsInfo[idx].querySelector('a.modi');
+				totalQty += getQuantity(infoElement);
+				totalCost += getCost(infoElement);
+			};
+			console.log(totalQty)
+			console.log(totalCost)
 			
-			console.log(costElement);
 		};
 	
 		/***
