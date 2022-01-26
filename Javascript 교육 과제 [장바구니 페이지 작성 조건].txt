@@ -23,9 +23,9 @@
               2.2.2 선택 상품을 삭제 버튼을 클릭시 선택 된 상품을 모두 제거 (OK)
 
 3.주문 
-	3.1 검정 색 버튼 [주문 하기] 클릭시 선택 된 행에 관련된 데이터 출력.
-	    설명 : input 테그의 name 이 qty,amt,deliver_amt,goods_code,item_no 인것을 출력한다.
-              3.2 실제 결제 금액도 출력 되어야 한다.
+	3.1 검정 색 버튼 [주문 하기] 클릭시 선택 된 행에 관련된 데이터 출력. (OK)
+	    설명 : input 테그의 name 이 qty,amt,deliver_amt,goods_code,item_no 인것을 출력한다. (OK)
+              3.2 실제 결제 금액도 출력 되어야 한다. (OK)
 
 [
 	{
