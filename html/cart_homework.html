@@ -173,7 +173,7 @@
 					<thead>
 						<tr>
 							<th scope="col" class="chk">
-								<input type="checkbox" class="checkbox" name="sel_all" id="sel_all_1" onclick="checkAll('sel_all_1')" />
+								<input type="checkbox" class="checkbox" name="sel_all" id="sel_all_1" onclick="checkAllOrder(this)" />
 								<label for="cart_all">전체선택</label>
 							</th>
 							<th scope="col">상품명/선택사항</th>
@@ -202,10 +202,10 @@
 
 				<!-- SELECT BUTTON -->
 				<div class="c_sel">
-					<input type="checkbox" name="sel_all" class="checkbox" id="sel_all_2" />
+					<input type="checkbox" name="sel_all" class="checkbox" id="sel_all_2" onclick="checkAllOrder(this);"/>
 					<label for="sel_all">전체선택</label>
 					<div class="btns">
-						<a href="javascript:;" ><img src="../images/order/btn_ord_del.gif" width="86"  height="32" alt="선택상품을 삭제" /></a>
+						<a href="javascript:;" ><img src="../images/order/btn_ord_del.gif" width="86"  height="32" alt="선택상품을 삭제" onclick="deleteSelectedOrder(this);"/></a>
 						<a href="#"><img src="../images/order/btn_ord_wish.gif" width="103" height="32" alt="위시리스트 담기" /></a>
 						<a href="#"><img src="../images/order/btn_ord.gif" width="103" height="32" alt="주문하기" /></a>
 						<a href="#"><img src="../images/order/btn_ord_all.gif" width="103" height="32" alt="전체 주문하기" /></a>
@@ -378,6 +378,38 @@
 			// console.log(totalCostElement.textContent);
 		};
 	
+
+		function checkAllOrder(element) {
+			var goodsInfo = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
+			// console.log(goodsInfo)
+			for (let idx = 0; idx < goodsInfo.length; idx++) {
+				var checkboxElement = goodsInfo[idx].querySelector('input.checkbox');
+				// console.log(checkboxElement);
+				if (element.checked == true) {
+					checkboxElement.checked = true;
+				} else {
+					checkboxElement.checked = false;
+				};
+			};
+		};
+
+		function deleteOrder(element) { // 해당 상품 삭제
+			var goodsElement = element.parentNode.parentNode;
+			// console.log(goodsElement);
+			goodsElement.remove();
+		};
+
+		function deleteSelectedOrder(element) { // 선택된 상품 삭제
+			var goodsElement = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
+			// console.log(goodsElement);
+			for (let idx = 0; idx < goodsElement.length; idx++) {
+				var checkboxElement = goodsElement[idx].querySelector('input.checkbox');
+				if (checkboxElement.checked == true) {
+					var order = checkboxElement.parentNode.parentNode;
+					order.remove();
+				};
+			};
+		};
 		/***
 			이부분 부터 소스 구현.
 		**/
@@ -483,7 +515,7 @@
 				html += '				<td class="g_dvr">' + toCurrency(cart.deliver_amt) + '</td>	';
 				html += '				<td class="g_ord">	';
 				html += '					<a href="#"><img src="../images/order/btn_order_s.gif" width="51" height="20" alt="주문하기" /></a>	';
-				html += '				<a href="javascript:;" class="del">삭제하기</a>	';
+				html += '				<a href="javascript:;" class="del" onclick="deleteOrder(this);">삭제하기</a>	';
 				html += '			</td>	';
 				html += '			</tr>	';
 
