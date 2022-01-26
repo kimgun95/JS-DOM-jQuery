@@ -413,20 +413,29 @@
 
 		function doOrder(element) { // 주문 하기: 터미널에 상품 정보를 출력
 			var goodsElement = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
+			var totalCost = 0
 			for (let idx = 0; idx < goodsElement.length; idx++) {
-				var qty = goodsElement[idx].querySelector('input[name=qty]');
-				var amt = goodsElement[idx].querySelector('input[name=amt]');
-				var deliver_amt = goodsElement[idx].querySelector('input[name=deliver_amt]');
-				var goods_code = goodsElement[idx].querySelector('input[name=goods_code]');
-				var item_no = goodsElement[idx].querySelector('input[name=item_no]');
+				var checkboxElement = goodsElement[idx].querySelector('input.checkbox');
+				if (checkboxElement.checked == true) {
+					var qty = goodsElement[idx].querySelector('input[name=qty]');
+					var amt = goodsElement[idx].querySelector('input[name=amt]');
+					var deliver_amt = goodsElement[idx].querySelector('input[name=deliver_amt]');
+					var goods_code = goodsElement[idx].querySelector('input[name=goods_code]');
+					var item_no = goodsElement[idx].querySelector('input[name=item_no]');
+					var title = goodsElement[idx].querySelector('p.pname > a');
 
-				console.log(qty.value)
-				console.log(amt.value)
-				console.log(deliver_amt.value)
-				console.log(goods_code.value)
-				console.log(item_no.value)
+					console.log(title.textContent)
+					console.log('수량: ' + qty.value)
+					console.log('가격: ' + amt.value)
+					console.log('배송비: ' + deliver_amt.value)
+					console.log('상품 코드: ' + goods_code.value)
+					console.log('단품 코드: ' + item_no.value)
 
+					totalCost += (Number(qty.value) * Number(amt.value)) + Number(deliver_amt.value)
+					
+				};
 			};
+			console.log('총 주문 금액: ' + toCurrency(totalCost) + '원')
 		};
 		
 		/***
