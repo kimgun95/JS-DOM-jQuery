@@ -351,8 +351,7 @@
 		};
 
 		function getCost(element) { // 상품 가격 get
-			var cost = element.parentNode.parentNode.parentNode.querySelector('p.pprc').textContent;
-			return Number(getNumberOnly(cost));
+			return Number(element.parentNode.querySelector('input[name=amt]').value);
 		};
 
 		function updateTotalCost(element) { // 총 주문금액 update
@@ -412,7 +411,7 @@
 			};
 		};
 
-		function doOrder(element) {
+		function doOrder(element) { // 주문 하기: 터미널에 상품 정보를 출력
 			var goodsElement = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
 			for (let idx = 0; idx < goodsElement.length; idx++) {
 				var qty = goodsElement[idx].querySelector('input[name=qty]');
