@@ -205,7 +205,7 @@
 					<input type="checkbox" name="sel_all" class="checkbox" id="sel_all_2" onclick="checkAllOrder(this);"/>
 					<label for="sel_all">전체선택</label>
 					<div class="btns">
-						<a href="javascript:;" ><img src="../images/order/btn_ord_del.gif" width="86"  height="32" alt="선택상품을 삭제" onclick="deleteSelectedOrder(this);"/></a>
+						<a href="javascript:;" ><img src="../images/order/btn_ord_del.gif" width="86"  height="32" alt="선택상품을 삭제" onclick="deleteCheckedOrder(this);"/></a>
 						<a href="#"><img src="../images/order/btn_ord_wish.gif" width="103" height="32" alt="위시리스트 담기" /></a>
 						<a href="#"><img src="../images/order/btn_ord.gif" width="103" height="32" alt="주문하기" onclick="doOrder(this);" /></a>
 						<a href="#"><img src="../images/order/btn_ord_all.gif" width="103" height="32" alt="전체 주문하기" /></a>
@@ -295,13 +295,17 @@
 
 		function getNumberOnly(str) { // 문자열에서 숫자만 추출하기
 			var regex = /[^0-9]/g;
-			return str.replace(regex, "");
+			return Number(str.replace(regex, ""));
+		};
+
+		function makeHtml(element, number) {
+			element.innerHTML = toCurrency(number);
 		};
 	
 		
 		function qtyPlus(element){ // 수량 더하기
 
-			var qtyElement = element.parentNode.querySelector('input[name=qty]')
+			var qtyElement = element.parentNode.querySelector('input[name=qty]');
 			var qtyValue = Number(qtyElement.value);
 			
 			qtyValue++;
@@ -312,7 +316,7 @@
 		};
 
 		 function qtyMinus(element){ // 수량빼기
-			var qtyElement = element.parentNode.querySelector('input[name=qty]')
+			var qtyElement = element.parentNode.querySelector('input[name=qty]');
 			var qtyValue = Number(qtyElement.value);
 			
 			qtyValue--;
@@ -338,31 +342,24 @@
 		function updateCost(element) { // 주문금액 update
 			var costElement = element.parentNode.parentNode.parentNode.querySelector('td.g_prc > span');
 			
-			var qty = getQuantity(element); // 수량
-			var cost = getCost(element); // 가격
+			var qty = Number(element.parentNode.querySelector('input[name=qty]').value); // 수량
+			var cost = Number(element.parentNode.querySelector('input[name=amt]').value); // 가격
 
-			costElement.innerHTML = toCurrency(qty * cost) + `원`;
+			costElement.innerHTML = toCurrency(qty * cost);
 
 			updateTotalCost(element); // 총 주문금액 update 하기
-		};
-	
-		function getQuantity(element) { // 상품 수량 get
-			return Number(element.parentNode.querySelector('input[name=qty]').value);
-		};
-
-		function getCost(element) { // 상품 가격 get
-			return Number(element.parentNode.querySelector('input[name=amt]').value);
 		};
 
 		function updateTotalCost(element) { // 총 주문금액 update
 			var orderCost = 0 // 주문 상품 금액
 			var deliverCost = 0 // 배송비
 			var goodsInfo = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tr');
+
 			for (let idx = 0; idx < goodsInfo.length; idx++) {
 				var orderInfo = goodsInfo[idx].querySelector('td.g_prc > span').textContent;
-				orderCost += Number(getNumberOnly(orderInfo));
+				orderCost += getNumberOnly(orderInfo);
 				var deliverInfo = goodsInfo[idx].querySelector('td.g_dvr').textContent;
-				deliverCost += Number(getNumberOnly(deliverInfo));
+				deliverCost += getNumberOnly(deliverInfo);
 				// console.log(orderCost);
 				// console.log(deliverCost);
 			};
@@ -376,37 +373,42 @@
 			// console.log(totalDeliverElement.textContent);
 			// console.log(totalCostElement.textContent);
 		};
-	
 
-		function checkAllOrder(element) {
+		function checkOnOff(isCheck, element) {
+			if (isCheck == true) {
+					element.checked = true;
+				} else {
+					element.checked = false;
+				};
+		};
+	
+		function checkAllOrder(element) { // '전체선택' 체크박스 기능
 			var goodsInfo = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
-			// console.log(goodsInfo)
+			
 			for (let idx = 0; idx < goodsInfo.length; idx++) {
 				var checkboxElement = goodsInfo[idx].querySelector('input.checkbox');
-				// console.log(checkboxElement);
-				if (element.checked == true) {
-					checkboxElement.checked = true;
-				} else {
-					checkboxElement.checked = false;
-				};
+				checkOnOff(element.checked, checkboxElement);
 			};
 			// console.log(element);
 		};
 
-		function deleteOrder(element) { // 해당 상품 삭제
-			var goodsElement = element.parentNode.parentNode;
-			// console.log(goodsElement);
-			goodsElement.remove();
+		function deleteOrder(element) { // 상품 삭제
+			element.remove();
 		};
 
-		function deleteSelectedOrder(element) { // 선택된 상품 삭제
+		function deleteSelectedOrder(element) { // 선택된 상품만 삭제
+			var goodsElement = element.parentNode.parentNode;
+			deleteOrder(goodsElement);
+		};
+
+		function deleteCheckedOrder(element) { // 체크된 모든 상품 삭제
 			var goodsElement = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
-			// console.log(goodsElement);
+			
 			for (let idx = 0; idx < goodsElement.length; idx++) {
 				var checkboxElement = goodsElement[idx].querySelector('input.checkbox');
 				if (checkboxElement.checked == true) {
 					var order = checkboxElement.parentNode.parentNode;
-					order.remove();
+					deleteOrder(order);
 				};
 			};
 		};
@@ -539,11 +541,11 @@
 				html += '								<a href="javascript:;" onclick="updateCost(this);" class="modi"><img src="../images/order/btn_cnt_mod.gif" width="46" height="18" alt="변경" /></a>	';
 				html += '					</p>	';
 				html += '				</td>	';
-				html += '				<td class="g_prc"><span>' + toCurrency(cart.price) + '원</span></td>	';
+				html += '				<td class="g_prc"><span>' + toCurrency(cart.price) + '</span></td>	';
 				html += '				<td class="g_dvr">' + toCurrency(cart.deliver_amt) + '</td>	';
 				html += '				<td class="g_ord">	';
 				html += '					<a href="#"><img src="../images/order/btn_order_s.gif" width="51" height="20" alt="주문하기" /></a>	';
-				html += '				<a href="javascript:;" class="del" onclick="deleteOrder(this);">삭제하기</a>	';
+				html += '				<a href="javascript:;" class="del" onclick="deleteSelectedOrder(this);">삭제하기</a>	';
 				html += '			</td>	';
 				html += '			</tr>	';
 
