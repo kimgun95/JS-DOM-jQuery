@@ -293,12 +293,12 @@
 			};
 		};
 
+		var regex = /[^0-9]/g;
 		function getNumberOnly(str) { // 문자열에서 숫자만 추출하기
-			var regex = /[^0-9]/g;
 			return Number(str.replace(regex, ""));
 		};
 
-		function makeHtml(element, number) {
+		function numberInHtml(element, number) { // 숫자(가격)를 html로 작성
 			element.innerHTML = toCurrency(number);
 		};
 	
@@ -308,8 +308,10 @@
 			var qtyElement = element.parentNode.querySelector('input[name=qty]');
 			var qtyValue = Number(qtyElement.value);
 			
-			qtyValue++;
-			qtyElement.value = qtyLimit(qtyValue);
+			if (qtyValue != 0) {
+				qtyValue++;
+				qtyElement.value = qtyLimit(qtyValue);
+			};
 
 			console.log('qtyPlus', element); // element의 "tagName.className" 으로 콘솔 출력.
 			console.log('qtyElement', qtyElement); // "tagName#idName.className" 으로 출력.
@@ -319,8 +321,10 @@
 			var qtyElement = element.parentNode.querySelector('input[name=qty]');
 			var qtyValue = Number(qtyElement.value);
 			
-			qtyValue--;
-			qtyElement.value = qtyLimit(qtyValue);
+			if (qtyValue != 0) {
+				qtyValue--;
+				qtyElement.value = qtyLimit(qtyValue);
+			};
 			// console.log('qtyMinus', element);
 			// console.log('qtyElement', qtyElement);
 		};
@@ -345,9 +349,18 @@
 			var qty = Number(element.parentNode.querySelector('input[name=qty]').value); // 수량
 			var cost = Number(element.parentNode.querySelector('input[name=amt]').value); // 가격
 
-			costElement.innerHTML = toCurrency(qty * cost);
+			if (qty != 0) {
+				numberInHtml(costElement, qty * cost);
+			};
 
 			updateTotalCost(element); // 총 주문금액 update 하기
+		};
+
+		function isSoldOut(quantity) {
+			if (quantity == 0) {
+				return [0, 0];
+			}
+			return [quantity, 1];
 		};
 
 		function updateTotalCost(element) { // 총 주문금액 update
@@ -356,30 +369,28 @@
 			var goodsInfo = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tr');
 
 			for (let idx = 0; idx < goodsInfo.length; idx++) {
+				var qty =  goodsInfo[idx].querySelector('input#cnt3.input').value;
+				var qtyInfo = isSoldOut(qty);
 				var orderInfo = goodsInfo[idx].querySelector('td.g_prc > span').textContent;
-				orderCost += getNumberOnly(orderInfo);
+				orderCost += getNumberOnly(orderInfo) * qtyInfo[0];
 				var deliverInfo = goodsInfo[idx].querySelector('td.g_dvr').textContent;
-				deliverCost += getNumberOnly(deliverInfo);
-				// console.log(orderCost);
-				// console.log(deliverCost);
+				deliverCost += getNumberOnly(deliverInfo) * qtyInfo[1];
 			};
+
 			var totalOrderElement = element.parentNode.parentNode.parentNode.parentNode.parentNode.querySelector('strong#ord_amt');
 			var totalDeliverElement = element.parentNode.parentNode.parentNode.parentNode.parentNode.querySelector('strong#deliver_total_amt');
 			var totalCostElement = element.parentNode.parentNode.parentNode.parentNode.parentNode.querySelector('strong#total_amt');
-			totalOrderElement.innerHTML = toCurrency(orderCost);
-			totalDeliverElement.innerHTML = toCurrency(deliverCost);
-			totalCostElement.innerHTML = toCurrency(orderCost + deliverCost);
-			// console.log(totalOrderElement.textContent);
-			// console.log(totalDeliverElement.textContent);
-			// console.log(totalCostElement.textContent);
+			numberInHtml(totalOrderElement, orderCost);
+			numberInHtml(totalDeliverElement, deliverCost);
+			numberInHtml(totalCostElement, orderCost + deliverCost);
 		};
 
-		function checkOnOff(isCheck, element) {
+		function checkOnOff(isCheck, element) { // 전체 선택 박스의 체크 여부에 따라 체크 On/Off
 			if (isCheck == true) {
-					element.checked = true;
-				} else {
-					element.checked = false;
-				};
+				element.checked = true;
+			} else {
+				element.checked = false;
+			};
 		};
 	
 		function checkAllOrder(element) { // '전체선택' 체크박스 기능
@@ -392,13 +403,15 @@
 			// console.log(element);
 		};
 
-		function deleteOrder(element) { // 상품 삭제
-			element.remove();
+		function deleteOnOff(isCheck, element) { // element 삭제
+			if (isCheck == true) {
+				element.remove();
+			};
 		};
 
 		function deleteSelectedOrder(element) { // 선택된 상품만 삭제
 			var goodsElement = element.parentNode.parentNode;
-			deleteOrder(goodsElement);
+			goodsElement.remove();
 		};
 
 		function deleteCheckedOrder(element) { // 체크된 모든 상품 삭제
@@ -406,16 +419,18 @@
 			
 			for (let idx = 0; idx < goodsElement.length; idx++) {
 				var checkboxElement = goodsElement[idx].querySelector('input.checkbox');
-				if (checkboxElement.checked == true) {
-					var order = checkboxElement.parentNode.parentNode;
-					deleteOrder(order);
-				};
+				var order = checkboxElement.parentNode.parentNode;
+				deleteOnOff(checkboxElement.checked, order);
 			};
 		};
 
+		
+
 		function doOrder(element) { // 주문 하기: 터미널에 상품 정보를 출력
 			var goodsElement = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
-			var totalCost = 0
+			var totalCost = 0;
+			var order = [];		
+
 			for (let idx = 0; idx < goodsElement.length; idx++) {
 				var checkboxElement = goodsElement[idx].querySelector('input.checkbox');
 				if (checkboxElement.checked == true) {
@@ -426,20 +441,31 @@
 					var item_no = goodsElement[idx].querySelector('input[name=item_no]');
 					var title = goodsElement[idx].querySelector('p.pname > a');
 
-					console.log(title.textContent)
-					console.log('수량: ' + qty.value)
-					console.log('가격: ' + amt.value)
-					console.log('배송비: ' + deliver_amt.value)
-					console.log('상품 코드: ' + goods_code.value)
-					console.log('단품 코드: ' + item_no.value)
+					var map = new Map();
+					map.set('qty', qty.value);
+					map.set('amt', amt.value * qty.value);
+					map.set('deliver_amt', deliver_amt.value);
+					map.set('goods_code', goods_code.value);
+					map.set('item_no', item_no.value);
 
-					totalCost += (Number(qty.value) * Number(amt.value)) + Number(deliver_amt.value)
+					order.push(map);
 					
+					if (qty.value != 0) {
+						totalCost += (Number(qty.value) * Number(amt.value)) + Number(deliver_amt.value)
+					};
 				};
 			};
+			console.log(order);
 			console.log('총 주문 금액: ' + toCurrency(totalCost) + '원')
 		};
 		
+		function showSoldOut(quantity, price) { // 품절 여부 확인
+			if (quantity == 0) {
+				return '품절'
+			} else {
+				return toCurrency(price)
+			};
+		};
 		/***
 			이부분 부터 소스 구현.
 		**/
@@ -450,7 +476,7 @@
 				goods_img : '../images/goods/img_50.jpg',
 				goods_no : '1000000000',
 				goods_nm : '[BeanPole] 빈폴 BE4AA11235 5종 택 1 [정상가175,150원(정품)이효리가방 (남/여 공용)]',
-				qty      : 1,
+				qty      : 0, // 재고가 없기 때문에 수량을 0으로 수정했습니다.
 				price	 : 175150,
 				deliver_amt : 3000,
 				item : [{
@@ -531,7 +557,7 @@
 				html += '					</td>	';
 				html += '					<td class="g_qty">	';
 			html += '							<p class="qty">	';
-				html += '								<input type="text" name="qty" id="cnt3" value=' + cart.qty + ' class="input" title="상품수량입력" />	';
+				html += '								<input type="text" name="qty" id="cnt3" value=' + cart.qty + ' class="input" title="상품수량입력" disabled=true/>	';
 				html += '								<input type="hidden" name="amt" value=' + cart.price + ' class="input" title="상품 가격" />	';
 				html += '								<input type="hidden" name="deliver_amt" value=' + cart.deliver_amt + ' class="input" title="배송비" />	';
 				html += '								<input type="hidden" name="goods_code" value=' + cart.goods_no + ' class="input" title="상품코드" />	';
@@ -541,7 +567,7 @@
 				html += '								<a href="javascript:;" onclick="updateCost(this);" class="modi"><img src="../images/order/btn_cnt_mod.gif" width="46" height="18" alt="변경" /></a>	';
 				html += '					</p>	';
 				html += '				</td>	';
-				html += '				<td class="g_prc"><span>' + toCurrency(cart.price) + '</span></td>	';
+				html += '				<td class="g_prc"><span>' + showSoldOut(cart.qty, cart.price) + '</span></td>	';
 				html += '				<td class="g_dvr">' + toCurrency(cart.deliver_amt) + '</td>	';
 				html += '				<td class="g_ord">	';
 				html += '					<a href="#"><img src="../images/order/btn_order_s.gif" width="51" height="20" alt="주문하기" /></a>	';
@@ -553,12 +579,25 @@
 
 			tBody.innerHTML = html;
 		
+			infoElements = tBody.querySelectorAll('tr');
+			for (let idx = 0; idx < infoElements.length; idx++) {
+				var g_qty = infoElements[idx];
+				var qty = g_qty.querySelector('input#cnt3.input').value;
+				console.log(g_qty);
+
+				if (qty == 0) {
+					g_qty.querySelector('a.plus').disabled = true;
+					g_qty.querySelector('a.minus').disabled = true;
+					g_qty.querySelector('a.modi').disabled = true;
+					console.log(g_qty.querySelector('a.plus'));
+				}
+				
+			}
 		}
 
 	
 	
 		searchCartList();
-
 	
 	
 	//]]>
