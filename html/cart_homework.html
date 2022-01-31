@@ -356,27 +356,27 @@
 			updateTotalCost(element); // 총 주문금액 update 하기
 		};
 
-		function isSoldOut(quantity) {
+		function isSoldOut(quantity) { // 수량이 0인 제품은 품절
 			if (quantity == 0) {
 				return [0, 0];
 			}
-			return [quantity, 1];
+			return [quantity, 1]; // [수량, 1] 에서 1은 배송비에 곱하기 위한 값
 		};
 
 		function updateTotalCost(element) { // 총 주문금액 update
-			var orderCost = 0 // 주문 상품 금액
-			var deliverCost = 0 // 배송비
+			var orderCost = 0; // 주문 상품 금액
+			var deliverCost = 0; // 배송비
 			var goodsInfo = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tr');
 
 			for (let idx = 0; idx < goodsInfo.length; idx++) {
 				var qty =  goodsInfo[idx].querySelector('input#cnt3.input').value;
 				var qtyInfo = isSoldOut(qty);
-				var orderInfo = goodsInfo[idx].querySelector('td.g_prc > span').textContent;
+				var orderInfo = goodsInfo[idx].querySelector('td.g_info > p.pprc').textContent;
 				orderCost += getNumberOnly(orderInfo) * qtyInfo[0];
 				var deliverInfo = goodsInfo[idx].querySelector('td.g_dvr').textContent;
 				deliverCost += getNumberOnly(deliverInfo) * qtyInfo[1];
 			};
-
+			
 			var totalOrderElement = element.parentNode.parentNode.parentNode.parentNode.parentNode.querySelector('strong#ord_amt');
 			var totalDeliverElement = element.parentNode.parentNode.parentNode.parentNode.parentNode.querySelector('strong#deliver_total_amt');
 			var totalCostElement = element.parentNode.parentNode.parentNode.parentNode.parentNode.querySelector('strong#total_amt');
@@ -424,38 +424,37 @@
 			};
 		};
 
-		
-
 		function doOrder(element) { // 주문 하기: 터미널에 상품 정보를 출력
 			var goodsElement = element.parentNode.parentNode.parentNode.parentNode.querySelectorAll('tbody > tr');
 			var totalCost = 0;
-			var order = [];		
+			// var order = [];
 
 			for (let idx = 0; idx < goodsElement.length; idx++) {
 				var checkboxElement = goodsElement[idx].querySelector('input.checkbox');
 				if (checkboxElement.checked == true) {
+					console.log(testData[idx]);
 					var qty = goodsElement[idx].querySelector('input[name=qty]');
 					var amt = goodsElement[idx].querySelector('input[name=amt]');
 					var deliver_amt = goodsElement[idx].querySelector('input[name=deliver_amt]');
-					var goods_code = goodsElement[idx].querySelector('input[name=goods_code]');
-					var item_no = goodsElement[idx].querySelector('input[name=item_no]');
-					var title = goodsElement[idx].querySelector('p.pname > a');
+					// var goods_code = goodsElement[idx].querySelector('input[name=goods_code]');
+					// var item_no = goodsElement[idx].querySelector('input[name=item_no]');
+					// var title = goodsElement[idx].querySelector('p.pname > a');
 
-					var map = new Map();
-					map.set('qty', qty.value);
-					map.set('amt', amt.value * qty.value);
-					map.set('deliver_amt', deliver_amt.value);
-					map.set('goods_code', goods_code.value);
-					map.set('item_no', item_no.value);
+					// var map = new Map();
+					// map.set('qty', qty.value);
+					// map.set('amt', amt.value * qty.value);
+					// map.set('deliver_amt', deliver_amt.value);
+					// map.set('goods_code', goods_code.value);
+					// map.set('item_no', item_no.value);
 
-					order.push(map);
+					// order.push(map);
 					
 					if (qty.value != 0) {
 						totalCost += (Number(qty.value) * Number(amt.value)) + Number(deliver_amt.value)
 					};
 				};
 			};
-			console.log(order);
+			// console.log(order);
 			console.log('총 주문 금액: ' + toCurrency(totalCost) + '원')
 		};
 		
