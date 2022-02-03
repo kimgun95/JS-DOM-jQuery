@@ -210,7 +210,7 @@
 					<div class="btns">
 						<a href="javascript:;" ><img src="../images/order/btn_ord_del.gif" width="86"  height="32" alt="선택상품을 삭제" class="deleteChecked"/></a>
 						<a href="#"><img src="../images/order/btn_ord_wish.gif" width="103" height="32" alt="위시리스트 담기" /></a>
-						<a href="#"><img src="../images/order/btn_ord.gif" width="103" height="32" alt="주문하기" onclick="doOrder(this);" /></a>
+						<a href="#"><img src="../images/order/btn_ord.gif" width="103" height="32" alt="주문하기" class="doOrder" /></a>
 						<a href="#"><img src="../images/order/btn_ord_all.gif" width="103" height="32" alt="전체 주문하기" /></a>
 					</div>
 				</div>
@@ -409,6 +409,33 @@
 				};
 			});
 
+			function orderOnOff(isCheck, element) { // 체크된 상품은 총 비용 반환
+				if (isCheck == true) {
+					var qty = element.children().children().children("input#cnt3.input").val();
+					var amt = element.children().children("td.g_info > p.pprc").text();
+					var deliver = element.children("td.g_dvr").text();
+
+					var qtyInfo = isSoldOut(qty);
+
+					return (getNumberOnly(amt) * qtyInfo[0]) + (getNumberOnly(deliver) * qtyInfo[1]);
+				};
+				return 0;
+			};
+			
+			$(".doOrder").on("click", function (e) { // 주문 하기: 터미널에 체크한 상품 정보를 출력
+				var goodsInfo = $("#tbl_cart_list > tbody > tr");
+				var totalCost = 0;
+
+				for (let idx = 0; idx < goodsInfo.length; idx++) {
+					var checkboxElement = $(goodsInfo[idx]).children().children("input.checkbox");
+
+					showOrder(checkboxElement.is(":checked"), idx); // 정보 출력
+
+					totalCost += orderOnOff(checkboxElement.is(":checked"), $(goodsInfo[idx]));
+					console.log(totalCost);
+				};
+				console.log('총 주문 금액: ' + toCurrency(totalCost) + '원'); // 총 금액 출력
+			});
 
 		});
 
@@ -433,24 +460,10 @@
 			return [quantity, 1]; // [수량, 1] 에서 1은 배송비에 곱하기 위한 값
 		};
 
-
 		function deleteOnOff(isCheck, element) { // 체크된 상품이면 삭제
 			if (isCheck == true) {
 				element.remove();
 			};
-		};
-
-		function orderOnOff(isCheck, element) { // 체크된 상품은 총 비용 반환
-			if (isCheck == true) {
-				var qty = element.querySelector('input[name=qty]'); // 수량
-				var amt = element.querySelector('input[name=amt]'); // 상품 가격
-				var deliver_amt = element.querySelector('input[name=deliver_amt]'); // 배송비
-				
-				var qtyInfo = isSoldOut(qty.value);
-
-				return (Number(amt.value) * qtyInfo[0]) + (Number(deliver_amt.value) * qtyInfo[1]);
-			};
-			return 0;
 		};
 
 		function showOrder(isCheck, index) { // 체크된 상품 정보 출력
@@ -459,20 +472,7 @@
 			};
 		};
 
-		function doOrder(element) { // 주문 하기: 터미널에 체크한 상품 정보를 출력
-			var goodsInfo = document.querySelectorAll('#tbl_cart_list > tbody > tr');
-			var totalCost = 0;
 
-			for (let idx = 0; idx < goodsInfo.length; idx++) {
-				var checkboxElement = goodsInfo[idx].querySelector('input.checkbox');
-
-				showOrder(checkboxElement.checked, idx); // 정보 출력
-
-				totalCost += orderOnOff(checkboxElement.checked, goodsInfo[idx]);
-			};
-			console.log('총 주문 금액: ' + toCurrency(totalCost) + '원'); // 총 금액 출력
-		};
-		
 		function showSoldOut(quantity, price) { // 주문금액에 '품절' or '가격' 출력
 			if (quantity == 0) {
 				return '품절';
