@@ -176,7 +176,7 @@
 					<thead>
 						<tr>
 							<th scope="col" class="chk">
-								<input type="checkbox" class="checkbox" name="sel_all" id="sel_all_1" onclick="checkAllOrder(this)" />
+								<input type="checkbox" class="checkbox" name="sel_all" id="sel_all_1"/>
 								<label for="cart_all">전체선택</label>
 							</th>
 							<th scope="col">상품명/선택사항</th>
@@ -205,7 +205,7 @@
 
 				<!-- SELECT BUTTON -->
 				<div class="c_sel">
-					<input type="checkbox" name="sel_all" class="checkbox" id="sel_all_2" onclick="checkAllOrder(this);"/>
+					<input type="checkbox" name="sel_all" class="checkbox" id="sel_all_2"/>
 					<label for="sel_all">전체선택</label>
 					<div class="btns">
 						<a href="javascript:;" ><img src="../images/order/btn_ord_del.gif" width="86"  height="32" alt="선택상품을 삭제" onclick="deleteCheckedOrder(this);"/></a>
@@ -308,8 +308,8 @@
 				$selObj = $(this);
 				var qtyElement = $selObj.siblings("#cnt3");
 				var qtyValue = qtyElement.val();
-				console.log(qtyElement);
-				console.log(qtyValue);
+				// console.log(qtyElement);
+				// console.log(qtyValue);
 
 				if (qtyValue != 0) {
 					qtyValue++;
@@ -342,9 +342,57 @@
 				updateTotalCost($selObj);
 			});
 
-			// function updateTotalCost(e) {
+			function updateTotalCost(e) {
+				var orderCost = 0; // 주문 상품 금액
+				var deliverCost = 0; // 배송비
+				var goodsInfo = $("#tbl_cart_list > tbody > tr");
+				
+				for (let idx = 0; idx < goodsInfo.length; idx++) {
+					$goods = $(goodsInfo[idx]);
+					var qty = $goods.children().children().children("input#cnt3.input").val();
+					var amt = $goods.children().children("td.g_info > p.pprc").text();
+					var deliver = $goods.children("td.g_dvr").text();
+					
+					var qtyInfo = isSoldOut(qty); // 품절인지 판단
+					
+					orderCost += getNumberOnly(amt) * qtyInfo[0];
+					deliverCost += getNumberOnly(deliver) * qtyInfo[1];
+				};
+				// 총 주문금액 + 총 배송비 = 총 결제 금액
+				var totalAmt = $("strong#ord_amt");
+				var totalDeliver = $("strong#deliver_total_amt");
+				var totalCost = $("strong#total_amt");
+				totalAmt.text(toCurrency(orderCost));
+				totalDeliver.text(toCurrency(deliverCost));
+				totalCost.text(toCurrency(orderCost + deliverCost));
+			};
 
-			// }
+			function checkOnOff(isCheck, element) { // 전체 선택 박스의 체크 여부에 따라 체크 On/Off
+				if (isCheck == true) {
+					element.prop('checked', true);
+				} else {
+					element.prop('checked', false);
+				};
+			};
+
+			$("#sel_all_1, #sel_all_2").on("click", function (e) { // '전체선택' 체크박스 기능
+				var goodsInfo = $("#tbl_cart_list > tbody > tr");
+				var topCheckbox = $("#sel_all_1");
+				var bottomCheckbox = $("#sel_all_2");
+				
+				// console.log(goodsInfo);
+				// console.log(topCheckbox);
+				// console.log(bottomCheckbox);
+				for (let idx = 0; idx < goodsInfo.length; idx++) { // 각 상품에 대한 체크
+					var checkboxElement = $(goodsInfo[idx]).children().children("input.checkbox");
+
+					checkOnOff($(this).is(":checked"), checkboxElement);
+				};
+				checkOnOff($(this).is(":checked"), topCheckbox); // 상단 '전체선택' 체크
+				checkOnOff($(this).is(":checked"), bottomCheckbox); // 하단 '전체선택' 체크
+			});
+
+
 		});
 
 		var minLimit = 1;
@@ -368,50 +416,6 @@
 			return [quantity, 1]; // [수량, 1] 에서 1은 배송비에 곱하기 위한 값
 		};
 
-		function updateTotalCost(element) { // 총 주문금액 update
-			var orderCost = 0; // 주문 상품 금액
-			var deliverCost = 0; // 배송비
-			var goodsInfo = document.querySelectorAll('#tbl_cart_list > tbody > tr');
-
-			for (let idx = 0; idx < goodsInfo.length; idx++) {
-				var qty =  goodsInfo[idx].querySelector('input#cnt3.input').value;
-				var orderInfo = goodsInfo[idx].querySelector('td.g_info > p.pprc').textContent;
-				var deliverInfo = goodsInfo[idx].querySelector('td.g_dvr').textContent;
-
-				var qtyInfo = isSoldOut(qty); // 품절인지 판단
-				
-				orderCost += getNumberOnly(orderInfo) * qtyInfo[0];
-				deliverCost += getNumberOnly(deliverInfo) * qtyInfo[1];
-			};
-			// 총 주문금액 + 총 배송비 = 총 결제 금액
-			var totalOrderElement = document.querySelector('strong#ord_amt');
-			var totalDeliverElement = document.querySelector('strong#deliver_total_amt');
-			var totalCostElement = document.querySelector('strong#total_amt');
-			totalOrderElement.innerHTML = toCurrency(orderCost);
-			totalDeliverElement.innerHTML = toCurrency(deliverCost);
-			totalCostElement.innerHTML = toCurrency(orderCost + deliverCost);
-		};
-
-		function checkOnOff(isCheck, element) { // 전체 선택 박스의 체크 여부에 따라 체크 On/Off
-			if (isCheck == true) {
-				element.checked = true;
-			} else {
-				element.checked = false;
-			};
-		};
-	
-		function checkAllOrder(element) { // '전체선택' 체크박스 기능
-			var goodsInfo = document.querySelectorAll('#tbl_cart_list > tbody > tr');
-			var topCheckbox = document.querySelector('input#sel_all_1.checkbox');
-			var bottomCheckbox = document.querySelector('input#sel_all_2.checkbox');
-
-			for (let idx = 0; idx < goodsInfo.length; idx++) { // 각 상품에 대한 체크
-				var checkboxElement = goodsInfo[idx].querySelector('input.checkbox');
-				checkOnOff(element.checked, checkboxElement);
-			};
-			checkOnOff(element.checked, topCheckbox); // 상단 '전체선택' 체크
-			checkOnOff(element.checked, bottomCheckbox); // 하단 '전체선택' 체크
-		};
 
 		function deleteOnOff(isCheck, element) { // 체크된 상품이면 삭제
 			if (isCheck == true) {
