@@ -355,7 +355,7 @@
 			if (quantity == 0) {
 				return [0, 0]; // 품절 상품은 [0, 0] 반환
 			};
-			return [quantity, 1]; // [수량, 1] 에서 1은 배송비에 곱하기 위한 값
+			return [quantity, 1]; // [수량, 1] 반환, 1은 배송비에 곱하기 위한 값
 		};
 
 		function updateTotalCost(element) { // 총 주문금액 update
@@ -420,6 +420,7 @@
 			for (let idx = 0; idx < goodsInfo.length; idx++) {
 				var checkboxElement = goodsInfo[idx].querySelector('input.checkbox');
 				var order = checkboxElement.parentNode.parentNode;
+				
 				deleteOnOff(checkboxElement.checked, order);
 			};
 		};
